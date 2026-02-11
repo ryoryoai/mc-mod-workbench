@@ -83,7 +83,7 @@ fn generate_scaffold(project_path: &PathBuf, prompt: &str, spec: &str) -> Result
 
 fn run_ai_plan(project_path: &PathBuf, provider: &str, prompt: &str) -> Result<ActionResult, String> {
     let instruction = format!(
-        "You are helping a child learn modding. Create a clear plan only (no code changes).\n\nIdea:\n{}\n\nReturn in Japanese with:\n1) やること\n2) 成功条件\n3) 失敗時の対処\n4) 最初の一歩",
+        "You are helping a 2nd grade child learn modding. Create a plan only (no code changes).\n\nIdea:\n{}\n\nWrite in very easy Japanese for 小学2年生. Short sentences.\nReturn with headings:\n1) なにをつくる？\n2) どうなったらせいこう？\n3) こまったらどうする？\n4) さいしょのいっぽ",
         prompt
     );
     run_ai_command(project_path, provider, &instruction)
@@ -97,7 +97,7 @@ fn run_ai_refine(
     draft_plan: &str,
 ) -> Result<ActionResult, String> {
     let instruction = format!(
-        "Refine this mod plan for execution.\n\nIdea:\n{}\n\nDraft plan:\n{}\n\nSpec:\n{}\n\nReturn refined, concrete checklist in Japanese. No code changes.",
+        "Refine this mod plan for execution (no code changes).\n\nIdea:\n{}\n\nDraft plan:\n{}\n\nSpec:\n{}\n\nWrite in very easy Japanese for 小学2年生.\nReturn checklist with boxes style:\n- [ ] ...\nAlso add one line:『ここを見ればOK』",
         prompt, draft_plan, spec
     );
     run_ai_command(project_path, provider, &instruction)
@@ -111,7 +111,7 @@ fn run_ai_execute(
     approved_plan: &str,
 ) -> Result<ActionResult, String> {
     let instruction = format!(
-        "You are editing a Minecraft mod project. Apply approved plan directly in code.\n\nIdea:\n{}\n\nApproved Plan:\n{}\n\nSpec:\n{}\n\nImplement now and summarize changed files + why.",
+        "You are editing a Minecraft mod project. Apply approved plan directly in code.\n\nIdea:\n{}\n\nApproved Plan:\n{}\n\nSpec:\n{}\n\nAfter implementation, explain in easy Japanese for 小学2年生:\n1) どのファイルをかえたか\n2) なにができるようになったか\n3) つぎにためすこと",
         prompt, approved_plan, spec
     );
     run_ai_command(project_path, provider, &instruction)

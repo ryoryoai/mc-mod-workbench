@@ -86,7 +86,7 @@ export default function App() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Sparkles size={16} /> MC Mod Workbench
+                <Sparkles size={16} /> こどもMODこうぼう
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -111,11 +111,11 @@ export default function App() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Lightbulb size={16} /> Step 1: Plan
+                <Lightbulb size={16} /> ステップ1：かんがえる
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <label className="mb-1 block text-xs text-slate-300">Idea (文字入力メイン)</label>
+              <label className="mb-1 block text-xs text-slate-300">つくりたいもの（もじでOK）</label>
               <Textarea
                 rows={4}
                 value={idea}
@@ -125,13 +125,13 @@ export default function App() {
                 }}
               />
               <Button disabled={busy} onClick={() => run("ai_plan")}>
-                <Sparkles className="mr-2 h-4 w-4" /> Planを作る
+                <Sparkles className="mr-2 h-4 w-4" /> けいかくを つくる
               </Button>
               <Textarea
                 rows={8}
                 value={planDraft}
                 onChange={(e) => setPlanDraft(e.target.value)}
-                placeholder="ここにAIの計画案が出る"
+                placeholder="ここに けいかく が でるよ"
               />
             </CardContent>
           </Card>
@@ -139,20 +139,20 @@ export default function App() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <CheckCircle2 size={16} /> Step 2: Refine
+                <CheckCircle2 size={16} /> ステップ2：ととのえる
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <label className="mb-1 block text-xs text-slate-300">Spec YAML</label>
+              <label className="mb-1 block text-xs text-slate-300">ルール（Spec YAML）</label>
               <Textarea rows={8} value={spec} onChange={(e) => setSpec(e.target.value)} />
               <Button disabled={busy} variant="secondary" onClick={() => run("ai_refine")}>
-                <Sparkles className="mr-2 h-4 w-4" /> Planを煮詰める
+                <Sparkles className="mr-2 h-4 w-4" /> けいかくを もっとよくする
               </Button>
               <Textarea
                 rows={8}
                 value={approvedPlan}
                 onChange={(e) => setApprovedPlan(e.target.value)}
-                placeholder="承認する最終計画"
+                placeholder="さいしゅう けいかく（これでいく！）"
               />
             </CardContent>
           </Card>
@@ -160,16 +160,16 @@ export default function App() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Hammer size={16} /> Step 3: Execute
+                <Hammer size={16} /> ステップ3：つくる
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="grid grid-cols-2 gap-2">
                 <Button disabled={busy} onClick={() => run("generate")}>
-                  <Hammer className="mr-2 h-4 w-4" /> Scaffold
+                  <Hammer className="mr-2 h-4 w-4" /> ひな形をつくる
                 </Button>
                 <Button disabled={busy} variant="secondary" onClick={() => run("ai_execute")}>
-                  <Play className="mr-2 h-4 w-4" /> Execute Plan
+                  <Play className="mr-2 h-4 w-4" /> けいかくどおり つくる
                 </Button>
                 <Button disabled={busy} variant="secondary" onClick={() => run("build")}>
                   <Play className="mr-2 h-4 w-4" /> Build
