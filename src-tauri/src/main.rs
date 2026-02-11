@@ -61,8 +61,17 @@ fn run_workbench_action(action: String, payload: ActionPayload) -> Result<Action
 
 fn expand_tilde(input: &str) -> Result<PathBuf, String> {
     if let Some(stripped) = input.strip_prefix("~/") {
-        let home = std::env::var("HOME").map_err(|_| "HOME not found")?;
-        return Ok(PathBuf::from(home).join(stripped));
+        #[cfg(target_os = "windows")]
+        {
+            let home = std::env::var("USERPROFILE").map_err(|_| "USERPROFILE not found")?;
+            return Ok(PathBuf::from(home).join(stripped));
+        }
+
+        #[cfg(not(target_os = "windows"))]
+        {
+            let home = std::env::var("HOME").map_err(|_| "HOME not found")?;
+            return Ok(PathBuf::from(home).join(stripped));
+        }
     }
     Ok(PathBuf::from(input))
 }
@@ -158,28 +167,33 @@ fn run_ai_command(
         _ => ("claude", vec!["-p", instruction]),
     };
 
-    let output = Command::new(cmd)
-        .args(args)
-        .current_dir(project_path)
-        .output()
-        .map_err(|e| format!("Failed to run {} CLI: {}", cmd, e))?;
-
-    let stdout = String::from_utf8_lossy(&output.stdout);
-    let stderr = String::from_utf8_lossy(&output.stderr);
-
-    Ok(ActionResult {
-        success: output.status.success(),
-        output: format!("{}\n{}", stdout, stderr),
-    })
+    run_process(cmd, args, project_path)
 }
 
 fn run_gradle(project_path: &PathBuf, task: &str) -> Result<ActionResult, String> {
-    let gradlew = if cfg!(target_os = "windows") { "gradlew.bat" } else { "./gradlew" };
-    let output = Command::new(gradlew)
-        .arg(task)
-        .current_dir(project_path)
-        .output()
-        .map_err(|e| format!("Failed to run gradle command: {}", e))?;
+    if cfg!(target_os = "windows") {
+        run_process("gradlew.bat", vec![task], project_path)
+    } else {
+        run_process("./gradlew", vec![task], project_path)
+    }
+}
+
+fn run_process(cmd: &str, args: Vec<&str>, cwd: &PathBuf) -> Result<ActionResult, String> {
+    let output = if cfg!(target_os = "windows") {
+        let mut all_args = vec!["/C", cmd];
+        all_args.extend(args);
+        Command::new("cmd")
+            .args(all_args)
+            .current_dir(cwd)
+            .output()
+            .map_err(|e| format!("Failed to run {}: {}", cmd, e))?
+    } else {
+        Command::new(cmd)
+            .args(args)
+            .current_dir(cwd)
+            .output()
+            .map_err(|e| format!("Failed to run {}: {}", cmd, e))?
+    };
 
     let stdout = String::from_utf8_lossy(&output.stdout);
     let stderr = String::from_utf8_lossy(&output.stderr);

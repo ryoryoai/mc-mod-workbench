@@ -28,11 +28,28 @@ Tauri + React + shadcn UI app for a **CLI-first Minecraft mod workflow**.
 
 ## Quick start
 
+### macOS
+
 ```bash
 cd projects/mc-mod-workbench
 npm install
 npm run tauri:dev
 ```
+
+### Windows (PowerShell)
+
+```powershell
+cd projects\mc-mod-workbench
+npm install
+npm run tauri:dev
+```
+
+## Requirements (Mac/Win 共通)
+
+- Node.js 20+
+- Rust (stable)
+- Claude CLI または Codex CLI（ログイン済み）
+- Minecraft Java mod project with Gradle wrapper (`gradlew` / `gradlew.bat`)
 
 ## Usage
 
@@ -46,3 +63,4 @@ npm run tauri:dev
 
 - No API key flow is embedded. Integrate your authenticated Codex/Claude CLI separately as next step.
 - Current `Generate` writes scaffold files (`spec/mod.spec.yaml`, `generated/*`). You can extend this with CLI-driven code synthesis.
+- GitHub Actions (`.github/workflows/cross-platform-check.yml`) runs build/check on macOS + Windows.
