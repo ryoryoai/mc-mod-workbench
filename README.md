@@ -6,6 +6,7 @@ Tauri + React + shadcn UI app for a **CLI-first Minecraft mod workflow**.
 
 - Text-first UI (音声は外部アプリ併用前提)
 - 小学2年生向けのやさしい文言UI
+- 学習モード ON/OFF 切り替え（やさしい説明 / 通常説明）
 - 3-step flow for learning:
   - **Plan** (`ai_plan`): plan only, no code changes
   - **Refine** (`ai_refine`): improve plan into concrete checklist

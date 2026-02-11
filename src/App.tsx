@@ -34,6 +34,7 @@ const defaultSpec = `name: Speed Candy\nmodId: speedcandy\nmcVersion: 1.20.1\nlo
 export default function App() {
   const [projectPath, setProjectPath] = useState("~/mc-mods/speedcandy");
   const [provider, setProvider] = useState<"claude" | "codex">("claude");
+  const [learningMode, setLearningMode] = useState(true);
 
   const [idea, setIdea] = useState(
     "足が速くなるキャンディを作って。子ども向けにわかりやすいUIで秒数を調整できるように。",
@@ -60,6 +61,7 @@ export default function App() {
           spec,
           snapshotName,
           provider,
+          learningMode,
           planDraft,
           approvedPlan,
         },
@@ -104,6 +106,16 @@ export default function App() {
                   <option value="claude">Claude CLI</option>
                   <option value="codex">Codex CLI</option>
                 </select>
+              </div>
+              <div className="grid grid-cols-[1fr_auto] items-center gap-2">
+                <label className="text-xs text-slate-300">学習モード</label>
+                <button
+                  type="button"
+                  onClick={() => setLearningMode((v) => !v)}
+                  className="rounded-md border border-slate-700 bg-slate-950 px-3 py-1 text-sm hover:bg-slate-800"
+                >
+                  {learningMode ? "ON（やさしい説明）" : "OFF（ふつう）"}
+                </button>
               </div>
             </CardContent>
           </Card>

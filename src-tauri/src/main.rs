@@ -12,6 +12,8 @@ struct ActionPayload {
     #[serde(rename = "snapshotName")]
     snapshot_name: String,
     provider: String,
+    #[serde(rename = "learningMode")]
+    learning_mode: Option<bool>,
     #[serde(rename = "planDraft")]
     plan_draft: Option<String>,
     #[serde(rename = "approvedPlan")]
@@ -28,15 +30,18 @@ struct ActionResult {
 fn run_workbench_action(action: String, payload: ActionPayload) -> Result<ActionResult, String> {
     let project_path = expand_tilde(&payload.project_path)?;
 
+    let learning_mode = payload.learning_mode.unwrap_or(true);
+
     match action.as_str() {
         "generate" => generate_scaffold(&project_path, &payload.prompt, &payload.spec),
-        "ai_plan" => run_ai_plan(&project_path, &payload.provider, &payload.prompt),
+        "ai_plan" => run_ai_plan(&project_path, &payload.provider, &payload.prompt, learning_mode),
         "ai_refine" => run_ai_refine(
             &project_path,
             &payload.provider,
             &payload.prompt,
             &payload.spec,
             payload.plan_draft.as_deref().unwrap_or(""),
+            learning_mode,
         ),
         "ai_execute" => run_ai_execute(
             &project_path,
@@ -44,6 +49,7 @@ fn run_workbench_action(action: String, payload: ActionPayload) -> Result<Action
             &payload.prompt,
             &payload.spec,
             payload.approved_plan.as_deref().unwrap_or(""),
+            learning_mode,
         ),
         "build" => run_gradle(&project_path, "build"),
         "run_client" => run_gradle(&project_path, "runClient"),
@@ -81,10 +87,21 @@ fn generate_scaffold(project_path: &PathBuf, prompt: &str, spec: &str) -> Result
     })
 }
 
-fn run_ai_plan(project_path: &PathBuf, provider: &str, prompt: &str) -> Result<ActionResult, String> {
+fn run_ai_plan(
+    project_path: &PathBuf,
+    provider: &str,
+    prompt: &str,
+    learning_mode: bool,
+) -> Result<ActionResult, String> {
+    let style = if learning_mode {
+        "Write in very easy Japanese for 小学2年生. Short sentences."
+    } else {
+        "Write in standard concise Japanese for developers."
+    };
+
     let instruction = format!(
-        "You are helping a 2nd grade child learn modding. Create a plan only (no code changes).\n\nIdea:\n{}\n\nWrite in very easy Japanese for 小学2年生. Short sentences.\nReturn with headings:\n1) なにをつくる？\n2) どうなったらせいこう？\n3) こまったらどうする？\n4) さいしょのいっぽ",
-        prompt
+        "Create a plan only (no code changes).\n\nIdea:\n{}\n\n{}\nReturn with headings:\n1) なにをつくる？\n2) どうなったらせいこう？\n3) こまったらどうする？\n4) さいしょのいっぽ",
+        prompt, style
     );
     run_ai_command(project_path, provider, &instruction)
 }
@@ -95,10 +112,17 @@ fn run_ai_refine(
     prompt: &str,
     spec: &str,
     draft_plan: &str,
+    learning_mode: bool,
 ) -> Result<ActionResult, String> {
+    let style = if learning_mode {
+        "Write in very easy Japanese for 小学2年生."
+    } else {
+        "Write in standard concise Japanese for developers."
+    };
+
     let instruction = format!(
-        "Refine this mod plan for execution (no code changes).\n\nIdea:\n{}\n\nDraft plan:\n{}\n\nSpec:\n{}\n\nWrite in very easy Japanese for 小学2年生.\nReturn checklist with boxes style:\n- [ ] ...\nAlso add one line:『ここを見ればOK』",
-        prompt, draft_plan, spec
+        "Refine this mod plan for execution (no code changes).\n\nIdea:\n{}\n\nDraft plan:\n{}\n\nSpec:\n{}\n\n{}\nReturn checklist with boxes style:\n- [ ] ...\nAlso add one line:『ここを見ればOK』",
+        prompt, draft_plan, spec, style
     );
     run_ai_command(project_path, provider, &instruction)
 }
@@ -109,10 +133,17 @@ fn run_ai_execute(
     prompt: &str,
     spec: &str,
     approved_plan: &str,
+    learning_mode: bool,
 ) -> Result<ActionResult, String> {
+    let style = if learning_mode {
+        "After implementation, explain in easy Japanese for 小学2年生."
+    } else {
+        "After implementation, explain clearly for developers in Japanese."
+    };
+
     let instruction = format!(
-        "You are editing a Minecraft mod project. Apply approved plan directly in code.\n\nIdea:\n{}\n\nApproved Plan:\n{}\n\nSpec:\n{}\n\nAfter implementation, explain in easy Japanese for 小学2年生:\n1) どのファイルをかえたか\n2) なにができるようになったか\n3) つぎにためすこと",
-        prompt, approved_plan, spec
+        "You are editing a Minecraft mod project. Apply approved plan directly in code.\n\nIdea:\n{}\n\nApproved Plan:\n{}\n\nSpec:\n{}\n\n{}\nInclude:\n1) どのファイルをかえたか\n2) なにができるようになったか\n3) つぎにためすこと",
+        prompt, approved_plan, spec, style
     );
     run_ai_command(project_path, provider, &instruction)
 }
