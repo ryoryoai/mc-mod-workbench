@@ -4,8 +4,12 @@ Tauri + React + shadcn UI app for a **CLI-first Minecraft mod workflow**.
 
 ## What is implemented
 
-- Prompt + Spec editor UI
-- Actions:
+- Text-first UI (音声は外部アプリ併用前提)
+- 3-step flow for learning:
+  - **Plan** (`ai_plan`): plan only, no code changes
+  - **Refine** (`ai_refine`): improve plan into concrete checklist
+  - **Execute** (`ai_execute`): implement approved plan in code
+- Additional actions:
   - Generate scaffold files from prompt/spec
   - Gradle build
   - Gradle runClient

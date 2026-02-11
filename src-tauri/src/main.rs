@@ -12,6 +12,10 @@ struct ActionPayload {
     #[serde(rename = "snapshotName")]
     snapshot_name: String,
     provider: String,
+    #[serde(rename = "planDraft")]
+    plan_draft: Option<String>,
+    #[serde(rename = "approvedPlan")]
+    approved_plan: Option<String>,
 }
 
 #[derive(Debug, Serialize)]
@@ -26,7 +30,21 @@ fn run_workbench_action(action: String, payload: ActionPayload) -> Result<Action
 
     match action.as_str() {
         "generate" => generate_scaffold(&project_path, &payload.prompt, &payload.spec),
-        "ai_generate" => run_ai_generate(&project_path, &payload.provider, &payload.prompt, &payload.spec),
+        "ai_plan" => run_ai_plan(&project_path, &payload.provider, &payload.prompt),
+        "ai_refine" => run_ai_refine(
+            &project_path,
+            &payload.provider,
+            &payload.prompt,
+            &payload.spec,
+            payload.plan_draft.as_deref().unwrap_or(""),
+        ),
+        "ai_execute" => run_ai_execute(
+            &project_path,
+            &payload.provider,
+            &payload.prompt,
+            &payload.spec,
+            payload.approved_plan.as_deref().unwrap_or(""),
+        ),
         "build" => run_gradle(&project_path, "build"),
         "run_client" => run_gradle(&project_path, "runClient"),
         "snapshot" => create_snapshot(&project_path, &payload.snapshot_name),
@@ -63,20 +81,50 @@ fn generate_scaffold(project_path: &PathBuf, prompt: &str, spec: &str) -> Result
     })
 }
 
-fn run_ai_generate(
+fn run_ai_plan(project_path: &PathBuf, provider: &str, prompt: &str) -> Result<ActionResult, String> {
+    let instruction = format!(
+        "You are helping a child learn modding. Create a clear plan only (no code changes).\n\nIdea:\n{}\n\nReturn in Japanese with:\n1) やること\n2) 成功条件\n3) 失敗時の対処\n4) 最初の一歩",
+        prompt
+    );
+    run_ai_command(project_path, provider, &instruction)
+}
+
+fn run_ai_refine(
     project_path: &PathBuf,
     provider: &str,
     prompt: &str,
     spec: &str,
+    draft_plan: &str,
 ) -> Result<ActionResult, String> {
     let instruction = format!(
-        "You are editing a Minecraft mod project.\nUser prompt:\n{}\n\nSpec:\n{}\n\nApply changes directly in this project and explain what you changed.",
-        prompt, spec
+        "Refine this mod plan for execution.\n\nIdea:\n{}\n\nDraft plan:\n{}\n\nSpec:\n{}\n\nReturn refined, concrete checklist in Japanese. No code changes.",
+        prompt, draft_plan, spec
     );
+    run_ai_command(project_path, provider, &instruction)
+}
 
+fn run_ai_execute(
+    project_path: &PathBuf,
+    provider: &str,
+    prompt: &str,
+    spec: &str,
+    approved_plan: &str,
+) -> Result<ActionResult, String> {
+    let instruction = format!(
+        "You are editing a Minecraft mod project. Apply approved plan directly in code.\n\nIdea:\n{}\n\nApproved Plan:\n{}\n\nSpec:\n{}\n\nImplement now and summarize changed files + why.",
+        prompt, approved_plan, spec
+    );
+    run_ai_command(project_path, provider, &instruction)
+}
+
+fn run_ai_command(
+    project_path: &PathBuf,
+    provider: &str,
+    instruction: &str,
+) -> Result<ActionResult, String> {
     let (cmd, args): (&str, Vec<&str>) = match provider {
-        "codex" => ("codex", vec!["exec", &instruction]),
-        _ => ("claude", vec!["-p", &instruction]),
+        "codex" => ("codex", vec!["exec", instruction]),
+        _ => ("claude", vec!["-p", instruction]),
     };
 
     let output = Command::new(cmd)
