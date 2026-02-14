@@ -96,6 +96,17 @@ fn generate_scaffold(project_path: &PathBuf, prompt: &str, spec: &str) -> Result
     })
 }
 
+fn weapon_context(spec: &str) -> &'static str {
+    if spec.contains("type: weapon") {
+        "\nThis is a WEAPON mod for Fabric 1.20.1. \
+         Generate: 1) Custom weapon class extending SwordItem/AxeItem with postHit effects, \
+         2) ModItems registration, 3) ModInitializer, 4) Crafting recipe JSON, \
+         5) Item model JSON, 6) Language files (en_us/ja_jp), 7) Texture description."
+    } else {
+        ""
+    }
+}
+
 fn run_ai_plan(
     project_path: &PathBuf,
     provider: &str,
@@ -129,9 +140,11 @@ fn run_ai_refine(
         "Write in standard concise Japanese for developers."
     };
 
+    let wctx = weapon_context(spec);
+
     let instruction = format!(
-        "Refine this mod plan for execution (no code changes).\n\nIdea:\n{}\n\nDraft plan:\n{}\n\nSpec:\n{}\n\n{}\nReturn checklist with boxes style:\n- [ ] ...\nAlso add one line:『ここを見ればOK』",
-        prompt, draft_plan, spec, style
+        "Refine this mod plan for execution (no code changes).\n\nIdea:\n{}\n\nDraft plan:\n{}\n\nSpec:\n{}{}\n\n{}\nReturn checklist with boxes style:\n- [ ] ...\nAlso add one line:『ここを見ればOK』",
+        prompt, draft_plan, spec, wctx, style
     );
     run_ai_command(project_path, provider, &instruction)
 }
@@ -150,9 +163,11 @@ fn run_ai_execute(
         "After implementation, explain clearly for developers in Japanese."
     };
 
+    let wctx = weapon_context(spec);
+
     let instruction = format!(
-        "You are editing a Minecraft mod project. Apply approved plan directly in code.\n\nIdea:\n{}\n\nApproved Plan:\n{}\n\nSpec:\n{}\n\n{}\nInclude:\n1) どのファイルをかえたか\n2) なにができるようになったか\n3) つぎにためすこと",
-        prompt, approved_plan, spec, style
+        "You are editing a Minecraft mod project. Apply approved plan directly in code.\n\nIdea:\n{}\n\nApproved Plan:\n{}\n\nSpec:\n{}{}\n\n{}\nInclude:\n1) どのファイルをかえたか\n2) なにができるようになったか\n3) つぎにためすこと",
+        prompt, approved_plan, spec, wctx, style
     );
     run_ai_command(project_path, provider, &instruction)
 }

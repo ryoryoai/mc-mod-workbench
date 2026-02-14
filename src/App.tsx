@@ -31,10 +31,37 @@ type Action =
 
 const defaultSpec = `name: Speed Candy\nmodId: speedcandy\nmcVersion: 1.20.1\nloader: fabric\nfeatures:\n  - type: consumable\n    id: speed_candy\n    effect: speed\n    amplifier: 1\n    durationSeconds: 60\n  - type: ui\n    id: tweak_panel\n`;
 
+const defaultWeaponSpec = `name: ほのおのけん
+modId: fireweapon
+mcVersion: "1.20.1"
+loader: fabric
+features:
+  - type: weapon
+    id: fire_sword
+    weaponType: sword
+    material: diamond
+    attackDamage: 8
+    attackSpeed: 1.6
+    durability: 1561
+    effects:
+      - effect: fire
+        durationSeconds: 5
+    texture:
+      primaryColor: "#FF4500"
+      secondaryColor: "#8B4513"
+      description: "ほのおが もえている ダイヤのけん"
+    recipe:
+      pattern: standard_sword
+      ingredients:
+        blade: "minecraft:diamond"
+        handle: "minecraft:blaze_rod"
+`;
+
 export default function App() {
-  const [projectPath, setProjectPath] = useState("~/mc-mods/speedcandy");
+  const [projectPath, setProjectPath] = useState("");
   const [provider, setProvider] = useState<"claude" | "codex">("claude");
   const [learningMode, setLearningMode] = useState(true);
+  const [modType, setModType] = useState<"consumable" | "weapon">("consumable");
 
   const [idea, setIdea] = useState(
     "足が速くなるキャンディを作って。子ども向けにわかりやすいUIで秒数を調整できるように。",
@@ -94,7 +121,7 @@ export default function App() {
             <CardContent className="space-y-4">
               <div>
                 <label className="mb-1 block text-xs text-slate-300">Project Path</label>
-                <Input value={projectPath} onChange={(e) => setProjectPath(e.target.value)} />
+                <Input value={projectPath} onChange={(e) => setProjectPath(e.target.value)} placeholder="~/mc-mods/mymod" />
               </div>
               <div className="grid grid-cols-[1fr_auto] items-center gap-2">
                 <label className="text-xs text-slate-300">AI Provider</label>
@@ -116,6 +143,26 @@ export default function App() {
                 >
                   {learningMode ? "ON（やさしい説明）" : "OFF（ふつう）"}
                 </button>
+              </div>
+              <div className="grid grid-cols-[1fr_auto] items-center gap-2">
+                <label className="text-xs text-slate-300">MODのしゅるい</label>
+                <select
+                  className="rounded-md border border-slate-700 bg-slate-950 px-2 py-1 text-sm"
+                  value={modType}
+                  onChange={(e) => {
+                    const type = e.target.value as "consumable" | "weapon";
+                    setModType(type);
+                    setSpec(type === "weapon" ? defaultWeaponSpec : defaultSpec);
+                    setIdea(
+                      type === "weapon"
+                        ? "ほのおのけんを つくって。てきにあたると もえるように。"
+                        : "足が速くなるキャンディを作って。子ども向けにわかりやすいUIで秒数を調整できるように。",
+                    );
+                  }}
+                >
+                  <option value="consumable">たべもの/アイテム</option>
+                  <option value="weapon">ぶき</option>
+                </select>
               </div>
             </CardContent>
           </Card>
